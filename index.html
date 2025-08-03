@@ -1,76 +1,102 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Upload Bar Charts</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload Exam Charts</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #f0f4f8, #d9e4f5);
+      min-height: 100vh;
+    }
+    .container {
+      margin-top: 100px;
+    }
+    .card {
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background: #007bff;
+      border: none;
+    }
+    .btn-primary:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h2>Upload Horizontal Bar Charts</h2>
-  <form id="uploadForm">
-    <label>PDF Filename:</label><br>
-    <input type="text" id="pdfName" name="pdfName" required><br><br>
-
-    <label>Email to send PDF:</label><br>
-    <input type="email" id="email" name="email" required><br><br>
-
-    <label>Upload Chart Screenshots:</label><br>
-    <input type="file" id="images" name="images" accept="image/png" multiple required><br><br>
-
-    <button type="submit">Upload & Convert</button>
-  </form>
-
-  <p id="status"></p>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h2 class="text-center mb-4">📤 Upload Exam Charts</h2>
+          <form id="uploadForm">
+            <div class="mb-3">
+              <label for="pdfName" class="form-label">Enter PDF File Name</label>
+              <input type="text" class="form-control" id="pdfName" placeholder="e.g., Test1_Result" required>
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Enter Email to Send PDF</label>
+              <input type="email" class="form-control" id="email" placeholder="yourname@example.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="images" class="form-label">Upload Chart Images (Multiple)</label>
+              <input type="file" class="form-control" id="images" accept="image/*" multiple required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">🚀 Upload and Generate PDF</button>
+          </form>
+          <div class="mt-3 text-center" id="status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const form = document.getElementById('uploadForm');
-    const status = document.getElementById('status');
+    const statusDiv = document.getElementById('status');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      statusDiv.innerHTML = "⏳ Uploading and generating PDF...";
 
-      const files = document.getElementById('images').files;
-      const pdfName = document.getElementById('pdfName').value;
+      const name = document.getElementById('pdfName').value;
       const email = document.getElementById('email').value;
+      const files = document.getElementById('images').files;
 
       if (!files.length) {
-        alert('Please select images!');
+        statusDiv.innerHTML = "❌ Please upload at least one image.";
         return;
       }
 
-      const imageBase64List = [];
+      const formData = new FormData();
+      formData.append('pdfName', name);
+      formData.append('email', email);
 
-      for (const file of files) {
-        const reader = new FileReader();
-        await new Promise(resolve => {
-          reader.onload = () => {
-            const base64 = reader.result.split(',')[1];
-            imageBase64List.push(base64);
-            resolve();
-          };
-          reader.readAsDataURL(file);
-        });
+      for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
       }
 
-      const payload = {
-        method: 'POST',
-        body: new URLSearchParams({
-          pdfName: pdfName,
-          email: email,
-          images: btoa(JSON.stringify(imageBase64List))
-        })
-      };
-
-      status.innerText = 'Uploading...';
-
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbz7bKf5LUeDwOprcnzCmeLIg3btpWtSZpZ1RpTmmU0Dgh9IchF0wpaoOuZhyTKKOj_lkw/exec', payload);
+        const response = await fetch(
+          'https://script.google.com/macros/s/AKfycbz7bKf5LUeDwOprcnzCmeLIg3btpWtSZpZ1RpTmmU0Dgh9IchF0wpaoOuZhyTKKOj_lkw/exec',
+          { method: 'POST', body: formData }
+        );
+
         const result = await response.json();
+
         if (result.status === 'success') {
-          status.innerText = `✅ PDF "${result.filename}" uploaded and emailed successfully!`;
+          statusDiv.innerHTML = "✅ Success! Redirecting...";
+          setTimeout(() => window.location.href = 'success.html', 2000);
         } else {
-          status.innerText = `❌ Error: ${result.message}`;
+          statusDiv.innerHTML = "❌ Error: " + result.message;
         }
       } catch (err) {
-        status.innerText = '❌ Failed to connect to server.';
+        statusDiv.innerHTML = "❌ Error: Failed to upload.";
+        console.error(err);
       }
     });
   </script>
