@@ -123,7 +123,7 @@
       status.innerText = 'Uploading...';
 
       try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbyqZuZ2-nwrejircHH9XvVEdOXZqZnkjkcasj9ISYCFMErRWTlB4d4aH87jrY0yjHomxA/exec', payload);
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwFmFrISx633Br9z0n2iHFCXO9b375lMnJl7gIFwG8zYckNdW8NqAt1Zro1cVz1bMol7g/exec', payload);
         const result = await response.json();
         if (result.status === 'success') {
           status.innerText = `✅ PDF "${result.filename}" uploaded and emailed successfully!`;
